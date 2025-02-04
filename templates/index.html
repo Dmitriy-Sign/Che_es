@@ -10,106 +10,82 @@
             margin: 0;
             padding: 0;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
-            background-color: #f9f9f9;
+            min-height: 100vh;
+            background-color: #f4f4f9;
         }
-
         .container {
-            max-width: 100%;
-            width: 90%;
-            margin: 20px auto;
-            padding: 20px;
+            max-width: 600px;
+            width: 100%;
             background: white;
+            padding: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-
-        h1 {
-            text-align: center;
-            font-size: 1.5rem;
-            color: #333;
+        .form-group {
+            margin-bottom: 15px;
         }
-
-        form {
-            margin-bottom: 20px;
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
         }
-
-        input[type="text"] {
-            width: calc(100% - 24px);
-            margin: 10px 0;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-
-        button {
+        .form-group input, .form-group select, .form-group button {
             width: 100%;
             padding: 10px;
-            margin: 10px 0;
-            font-size: 1rem;
-            border: none;
-            border-radius: 5px;
-            background-color: #007bff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .form-group button {
+            background-color: #007BFF;
             color: white;
             cursor: pointer;
         }
-
-        button:hover {
+        .form-group button:hover {
             background-color: #0056b3;
         }
-
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
-
+        table, th, td {
+            border: 1px solid #ccc;
+        }
         th, td {
-            text-align: left;
             padding: 10px;
-            border: 1px solid #ddd;
-        }
-
-        th {
-            background-color: #007bff;
-            color: white;
-        }
-
-        td {
-            word-wrap: break-word;
-        }
-
-        @media (max-width: 600px) {
-            th, td {
-                font-size: 0.9rem;
-            }
-
-            input[type="text"], button {
-                font-size: 0.9rem;
-            }
-
-            h1 {
-                font-size: 1.2rem;
-            }
+            text-align: left;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Список клиентов</h1>
-        <form id="add-form">
-            <input type="text" id="phone" placeholder="Номер телефона" maxlength="15">
-            <input type="text" id="description" placeholder="Что натворил (-а)? (до 50 символов)" maxlength="50">
-            <input type="text" id="city" placeholder="Город" maxlength="50">
-            <button type="button" onclick="addRecord()">Добавить</button>
-        </form>
-        <form id="search-form">
-            <input type="text" id="search-phone" placeholder="Поиск по номеру">
-            <button type="button" onclick="searchRecord()">Найти</button>
-        </form>
-        <table id="results-table">
+        <h2>Список клиентов</h2>
+        <div class="form-group">
+            <label for="phone">Номер телефона</label>
+            <input type="text" id="phone" placeholder="Введите номер телефона">
+        </div>
+        <div class="form-group">
+            <label for="description">Что натворил (-а)?</label>
+            <input type="text" id="description" placeholder="Введите описание (до 50 символов)">
+        </div>
+        <div class="form-group">
+            <label for="city">Город</label>
+            <select id="city">
+                <option value="Шымкент">Шымкент</option>
+                <option value="Алматы">Алматы</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <button onclick="addClient()">Добавить</button>
+        </div>
+        <div class="form-group">
+            <label for="search">Поиск по номеру</label>
+            <input type="text" id="search" placeholder="Введите номер для поиска" oninput="searchClient()">
+        </div>
+        <table id="clientTable">
             <thead>
                 <tr>
                     <th>Дата</th>
@@ -118,23 +94,49 @@
                     <th>Город</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr>
-                    <td>01.01.2025</td>
-                    <td>+1234567890</td>
-                    <td>Пример описания</td>
-                    <td>Москва</td>
-                </tr>
-            </tbody>
+            <tbody></tbody>
         </table>
     </div>
+
     <script>
-        function addRecord() {
-            alert('Добавить запись: функционал пока не реализован.');
+        const clientTable = document.getElementById('clientTable').getElementsByTagName('tbody')[0];
+
+        function addClient() {
+            const phone = document.getElementById('phone').value.trim();
+            const description = document.getElementById('description').value.trim();
+            const city = document.getElementById('city').value;
+
+            if (!phone || !description || !city) {
+                alert('Пожалуйста, заполните все поля.');
+                return;
+            }
+
+            const date = new Date().toLocaleDateString();
+
+            const newRow = clientTable.insertRow();
+            newRow.innerHTML = `
+                <td>${date}</td>
+                <td>${phone}</td>
+                <td>${description}</td>
+                <td>${city}</td>
+            `;
+
+            document.getElementById('phone').value = '';
+            document.getElementById('description').value = '';
+            document.getElementById('city').value = 'Шымкент';
         }
 
-        function searchRecord() {
-            alert('Поиск записи: функционал пока не реализован.');
+        function searchClient() {
+            const query = document.getElementById('search').value.trim();
+
+            const rows = clientTable.getElementsByTagName('tr');
+            for (let i = 0; i < rows.length; i++) {
+                const phoneCell = rows[i].getElementsByTagName('td')[1];
+                if (phoneCell) {
+                    const phone = phoneCell.textContent || phoneCell.innerText;
+                    rows[i].style.display = phone.includes(query) && query.length >= 4 ? '' : 'none';
+                }
+            }
         }
     </script>
 </body>
