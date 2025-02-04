@@ -1,117 +1,141 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Черный список</title>
+    <title>Список клиентов</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f9f9f9;
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-        form {
-            margin-bottom: 20px;
+            margin: 0;
+            padding: 0;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            align-items: center;
+            background-color: #f9f9f9;
         }
-        input, button {
+
+        .container {
+            max-width: 100%;
+            width: 90%;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.5rem;
+            color: #333;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            width: calc(100% - 24px);
+            margin: 10px 0;
             padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
+            border: 1px solid #ddd;
             border-radius: 5px;
+            font-size: 1rem;
         }
+
         button {
-            background-color: #007BFF;
-            color: #fff;
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 1rem;
             border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
             cursor: pointer;
         }
+
         button:hover {
             background-color: #0056b3;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
-            background-color: #fff;
         }
+
         th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
             text-align: left;
+            padding: 10px;
+            border: 1px solid #ddd;
         }
+
         th {
-            background-color: #f2f2f2;
+            background-color: #007bff;
+            color: white;
         }
+
+        td {
+            word-wrap: break-word;
+        }
+
         @media (max-width: 600px) {
-            table, thead, tbody, th, td, tr {
-                display: block;
+            th, td {
+                font-size: 0.9rem;
             }
-            thead tr {
-                display: none;
+
+            input[type="text"], button {
+                font-size: 0.9rem;
             }
-            td {
-                padding: 10px;
-                border: none;
-                position: relative;
-            }
-            td:before {
-                content: attr(data-label);
-                font-weight: bold;
-                position: absolute;
-                left: 10px;
-                top: 10px;
-            }
-            button {
-                font-size: 14px;
-                padding: 8px;
+
+            h1 {
+                font-size: 1.2rem;
             }
         }
     </style>
 </head>
 <body>
-    <h1>Черный список клиентов</h1>
+    <div class="container">
+        <h1>Список клиентов</h1>
+        <form id="add-form">
+            <input type="text" id="phone" placeholder="Номер телефона" maxlength="15">
+            <input type="text" id="description" placeholder="Что натворил (-а)? (до 50 символов)" maxlength="50">
+            <input type="text" id="city" placeholder="Город" maxlength="50">
+            <button type="button" onclick="addRecord()">Добавить</button>
+        </form>
+        <form id="search-form">
+            <input type="text" id="search-phone" placeholder="Поиск по номеру">
+            <button type="button" onclick="searchRecord()">Найти</button>
+        </form>
+        <table id="results-table">
+            <thead>
+                <tr>
+                    <th>Дата</th>
+                    <th>Телефон</th>
+                    <th>Описание</th>
+                    <th>Город</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>01.01.2025</td>
+                    <td>+1234567890</td>
+                    <td>Пример описания</td>
+                    <td>Москва</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <script>
+        function addRecord() {
+            alert('Добавить запись: функционал пока не реализован.');
+        }
 
-    <!-- Форма для добавления записи -->
-    <form method="POST">
-        <input type="text" name="phone" placeholder="Номер телефона" pattern="\d{10,15}" title="Введите корректный номер телефона" required>
-        <input type="text" name="description" placeholder="Что натворил (-а)? (до 50 символов)" maxlength="50" required>
-        <input type="text" name="city" placeholder="Город" required>
-        <button type="submit">Добавить</button>
-    </form>
-
-    <!-- Форма для поиска -->
-    <form method="GET">
-        <input type="text" name="search" placeholder="Поиск по номеру">
-        <button type="submit">Найти</button>
-    </form>
-
-    <!-- Таблица результатов -->
-    <table>
-        <thead>
-            <tr>
-                <th>Дата</th>
-                <th>Телефон</th>
-                <th>Описание</th>
-                <th>Город</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for row in results %}
-            <tr>
-                <td data-label="Дата">{{ row[1] }}</td>
-                <td data-label="Телефон">{{ row[2] }}</td>
-                <td data-label="Описание">{{ row[3] }}</td>
-                <td data-label="Город">{{ row[4] }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+        function searchRecord() {
+            alert('Поиск записи: функционал пока не реализован.');
+        }
+    </script>
 </body>
 </html>
