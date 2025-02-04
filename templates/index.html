@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Черный список</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        input, button {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #fff;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        @media (max-width: 600px) {
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+            thead tr {
+                display: none;
+            }
+            td {
+                padding: 10px;
+                border: none;
+                position: relative;
+            }
+            td:before {
+                content: attr(data-label);
+                font-weight: bold;
+                position: absolute;
+                left: 10px;
+                top: 10px;
+            }
+            button {
+                font-size: 14px;
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Черный список клиентов</h1>
+
+    <!-- Форма для добавления записи -->
+    <form method="POST">
+        <input type="text" name="phone" placeholder="Номер телефона" pattern="\d{10,15}" title="Введите корректный номер телефона" required>
+        <input type="text" name="description" placeholder="Что натворил (-а)? (до 50 символов)" maxlength="50" required>
+        <input type="text" name="city" placeholder="Город" required>
+        <button type="submit">Добавить</button>
+    </form>
+
+    <!-- Форма для поиска -->
+    <form method="GET">
+        <input type="text" name="search" placeholder="Поиск по номеру">
+        <button type="submit">Найти</button>
+    </form>
+
+    <!-- Таблица результатов -->
+    <table>
+        <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Телефон</th>
+                <th>Описание</th>
+                <th>Город</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in results %}
+            <tr>
+                <td data-label="Дата">{{ row[1] }}</td>
+                <td data-label="Телефон">{{ row[2] }}</td>
+                <td data-label="Описание">{{ row[3] }}</td>
+                <td data-label="Город">{{ row[4] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
