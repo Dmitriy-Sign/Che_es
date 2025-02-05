@@ -117,26 +117,42 @@
                 return;
             }
 
-            const response = await fetch('/add_client', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ phone, description, city })
-            });
-            if (response.ok) location.reload();
+            try {
+                const response = await fetch('/add_client', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ phone, description, city })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert(result.message);
+                    location.reload();
+                } else {
+                    alert(result.error);
+                }
+            } catch (error) {
+                alert('Ошибка при отправке данных на сервер.');
+            }
         }
 
         async function searchClient() {
             let query = document.getElementById('search').value.trim();
             query = cleanPhoneNumber(query);
 
-            const response = await fetch(`/search_client?phone=${query}`);
-            const clients = await response.json();
+            try {
+                const response = await fetch(`/search_client?phone=${query}`);
+                const clients = await response.json();
 
-            clientTable.innerHTML = '';
-            clients.forEach(client => {
-                const row = clientTable.insertRow();
-                row.innerHTML = `<td>${client.date}</td><td>${client.phone}</td><td>${client.description}</td><td>${client.city}</td>`;
-            });
+                clientTable.innerHTML = '';
+                clients.forEach(client => {
+                    const row = clientTable.insertRow();
+                    row.innerHTML = `<td>${client.date}</td><td>${client.phone}</td><td>${client.description}</td><td>${client.city}</td>`;
+                });
+            } catch (error) {
+                alert('Ошибка при получении данных с сервера.');
+            }
         }
     </script>
 </body>

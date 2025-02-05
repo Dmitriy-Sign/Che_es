@@ -1,55 +1,66 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify
 import psycopg2
 from psycopg2 import sql
-import os
 
 app = Flask(__name__)
 
-# Подключение к PostgreSQL
-DATABASE_URL = "postgresql://blacklist_psql_user:l0XVhvf8TfCbiCz6lL87sMlJhV7filiY@dpg-cuhi6mt2ng1s738717d0-a/blacklist_psql"
-conn = psycopg2.connect(DATABASE_URL)
+# Настройка соединения с PostgreSQL
+conn = psycopg2.connect(
+    host="your_host",
+    database="your_db",
+    user="your_user",
+    password="your_password"
+)
 cursor = conn.cursor()
 
-# Создание таблицы, если её нет
-cursor.execute('''
-CREATE TABLE IF NOT EXISTS clients (
-    id SERIAL PRIMARY KEY,
-    phone VARCHAR(15) NOT NULL,
-    description TEXT NOT NULL,
-    city VARCHAR(50) NOT NULL,
-    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-''')
-conn.commit()
-
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-@app.route('/add', methods=['POST'])
+@app.route('/add_client', methods=['POST'])
 def add_client():
-    data = request.json
-    phone = ''.join(filter(str.isdigit, data.get('phone', '')))
-    description = data.get('description', '').strip()
-    city = data.get('city', '').strip()
-    
-    if not phone or not description or not city:
-        return jsonify({"error": "Все поля должны быть заполнены"}), 400
-    
-    cursor.execute("INSERT INTO clients (phone, description, city) VALUES (%s, %s, %s)", (phone, description, city))
-    conn.commit()
-    
-    return jsonify({"message": "Клиент добавлен успешно"})
+    try:
+        # Получаем данные из запроса
+        data = request.json
+        phone = ''.join(filter(str.isdigit, data.get('phone', '')))
+        description = data.get('description', '').strip()
+        city = data.get('city', '').strip()
 
-@app.route('/search', methods=['GET'])
+        # Проверяем, что все поля заполнены
+        if not phone or not description or not city:
+            return jsonify({"error": "Все поля должны быть заполнены"}), 400
+
+        # Добавляем клиента в базу данных
+        cursor.execute("INSERT INTO clients (phone, description, city) VALUES (%s, %s, %s)", (phone, description, city))
+        conn.commit()
+
+        # Успешный ответ
+        return jsonify({"message": "Клиент добавлен успешно"}), 200
+    
+    except psycopg2.Error as e:
+        conn.rollback()  # Откатываем изменения в случае ошибки
+        return jsonify({"error": "Ошибка базы данных"}), 500
+    
+    except Exception as e:
+        return jsonify({"error": "Неизвестная ошибка"}), 500
+
+@app.route('/search_client', methods=['GET'])
 def search_client():
-    query = request.args.get('query', '')
-    query = ''.join(filter(str.isdigit, query))
+    try:
+        phone = request.args.get('phone', '').strip()
+
+        # Проверка на пустой запрос
+        if not phone:
+            return jsonify([])
+
+        # Поиск клиента по номеру телефона
+        cursor.execute("SELECT date, phone, description, city FROM clients WHERE phone LIKE %s", (f"%{phone}%",))
+        clients = cursor.fetchall()
+
+        result = [{"date": row[0], "phone": row[1], "description": row[2], "city": row[3]} for row in clients]
+        return jsonify(result)
+
+    except psycopg2.Error as e:
+        return jsonify({"error": "Ошибка базы данных"}), 500
     
-    cursor.execute("SELECT date, phone, description, city FROM clients WHERE phone LIKE %s", (f"%{query}%",))
-    results = cursor.fetchall()
-    
-    return jsonify(results)
+    except Exception as e:
+        return jsonify({"error": "Неизвестная ошибка"}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(debug=True)
