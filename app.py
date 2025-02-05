@@ -1,55 +1,55 @@
-from flask import Flask, request, render_template
-import sqlite3
-import re
-from datetime import datetime
+from flask import Flask, request, jsonify, render_template
+import psycopg2
+from psycopg2 import sql
+import os
 
 app = Flask(__name__)
-DB_FILE = "blacklist.db"
 
-# Инициализация базы данных
-def init_db():
-    with sqlite3.connect(DB_FILE) as conn:
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS blacklist (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                date TEXT,
-                phone TEXT,
-                description TEXT,
-                city TEXT
-            )
-        """)
-    conn.close()
+# Подключение к PostgreSQL
+DATABASE_URL = "postgresql://blacklist_psql_user:l0XVhvf8TfCbiCz6lL87sMlJhV7filiY@dpg-cuhi6mt2ng1s738717d0-a/blacklist_psql"
+conn = psycopg2.connect(DATABASE_URL)
+cursor = conn.cursor()
 
-# Основной маршрут
-@app.route("/", methods=["GET", "POST"])
+# Создание таблицы, если её нет
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS clients (
+    id SERIAL PRIMARY KEY,
+    phone VARCHAR(15) NOT NULL,
+    description TEXT NOT NULL,
+    city VARCHAR(50) NOT NULL,
+    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+''')
+conn.commit()
+
+@app.route('/')
 def index():
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    if request.method == "POST":
-        # Очистка номера телефона от лишних символов
-        phone = re.sub(r"[^0-9+]", "", request.form.get("phone", ""))
-        description = request.form.get("description", "")[:50]
-        city = request.form.get("city", "")
-        date = datetime.now().strftime("%d.%m.%y")
+    return render_template('index.html')
 
-        # Вставка новой записи
-        cursor.execute(
-            "INSERT INTO blacklist (date, phone, description, city) VALUES (?, ?, ?, ?)",
-            (date, phone, description, city)
-        )
-        conn.commit()
+@app.route('/add', methods=['POST'])
+def add_client():
+    data = request.json
+    phone = ''.join(filter(str.isdigit, data.get('phone', '')))
+    description = data.get('description', '').strip()
+    city = data.get('city', '').strip()
+    
+    if not phone or not description or not city:
+        return jsonify({"error": "Все поля должны быть заполнены"}), 400
+    
+    cursor.execute("INSERT INTO clients (phone, description, city) VALUES (%s, %s, %s)", (phone, description, city))
+    conn.commit()
+    
+    return jsonify({"message": "Клиент добавлен успешно"})
 
-    # Поиск в базе данных
-    search_query = request.args.get("search", "")
-    if search_query:
-        cursor.execute("SELECT id, date, phone, description, city FROM blacklist WHERE phone LIKE ?", (f"%{search_query}%",))
-    else:
-        cursor.execute("SELECT id, date, phone, description, city FROM blacklist")
-
+@app.route('/search', methods=['GET'])
+def search_client():
+    query = request.args.get('query', '')
+    query = ''.join(filter(str.isdigit, query))
+    
+    cursor.execute("SELECT date, phone, description, city FROM clients WHERE phone LIKE %s", (f"%{query}%",))
     results = cursor.fetchall()
-    conn.close()
-    return render_template("index.html", results=results)
+    
+    return jsonify(results)
 
-if __name__ == "__main__":
-    init_db()
-    app.run(debug=True)
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
